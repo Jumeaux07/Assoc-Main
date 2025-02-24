@@ -1,0 +1,41 @@
+name: Laravel CI/CD
+
+on:
+  push:
+    branches:
+      - main # Modifier si ton branche principale est "master" ou autre
+  pull_request:
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛠 Cloner le code
+        uses: actions/checkout@v3
+
+      - name: ⚡️ Installer PHP et Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: composer
+
+      - name: 📦 Installer les dépendances
+        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+
+      - name: 🛠 Configurer l'environnement
+        run: cp .env.example .env
+
+      - name: 🔑 Générer la clé d'application
+        run: php artisan key:generate
+
+      - name: 🛠 Configurer SQLite pour les tests
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+      - name: 🧪 Lancer les tests
+        run: php artisan test
